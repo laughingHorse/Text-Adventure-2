@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRR17: The Local Rules Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            /* Changed font-family to VT323 */
+            font-family: 'VT323', Courier, monospace;
+            background-color: #000000;
+            color: #00FF00;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 18px; /* Increased base font size for VT323 for better readability */
+        }
+
+        #gameContainer {
+            width: 90%;
+            max-width: 800px;
+            border: 2px solid #00FF00;
+            padding: 20px;
+            background-color: #111111;
+            box-shadow: 0 0 15px #00FF00;
+            border-radius: 8px;
+        }
+
+        #header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #00FF00;
+            padding-bottom: 10px;
+        }
+
+        #header h1 {
+            font-size: 1.8em; /* Adjusted relative font size for new base */
+            margin: 0;
+        }
+
+        #playerNameInput {
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #222;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            border-radius: 4px;
+            font-family: inherit; /* Will inherit VT323 */
+            font-size: 1em; /* Ensure it matches body font size */
+        }
+
+        #scenarioText {
+            margin-bottom: 20px;
+            line-height: 1.7; /* Slightly increased line-height for VT323 */
+            white-space: pre-wrap; /* Preserve line breaks and spacing */
+        }
+
+        #choicesArea button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #003300;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit; /* Will inherit VT323 */
+            font-size: 1em; /* Adjusted for new base font size */
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #choicesArea button:hover {
+            background-color: #00FF00;
+            color: #000000;
+        }
+
+        #scoreArea {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px dashed #00FF00;
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        #consequenceText {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed #FF8C00; /* Orange for consequence */
+            background-color: #201500;
+            color: #FFD700; /* Gold for consequence text */
+            line-height: 1.6;
+            border-radius: 4px;
+        }
+
+        #certificate {
+            display: none; /* Hidden by default */
+            padding: 30px;
+            border: 3px double #00FF00;
+            text-align: center;
+            background-color: #0A0A0A;
+            color: #00FF00;
+            width: 80%;
+            max-width: 600px; /* Ensure it fits on a page */
+            margin: 20px auto; /* Centering for print */
+            border-radius: 8px;
+        }
+
+        #certificate h1 {
+            font-size: 2em; /* Adjusted for VT323 */
+            color: #FFFF00; /* Yellow title */
+        }
+        #certificate p {
+            font-size: 1.2em; /* Adjusted for VT323 */
+            line-height: 1.8;
+            margin: 15px 0;
+        }
+        #certPlayerName, #certScore {
+            font-weight: bold;
+            color: #FFFFFF; /* White for emphasis */
+        }
+        #certDate {
+            color: #CCCCCC; /* Lighter grey for date */
+        }
+
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: #FFFFFF; /* White background for printing */
+                color: #000000; /* Black text for printing */
+                font-family: 'Times New Roman', Times, serif; /* Serif font for formal certificate */
+                font-size: 12pt;
+            }
+            #gameContainer { /* Hide game container during print */
+                display: none;
+            }
+            #certificate {
+                display: block !important; /* Ensure certificate is visible */
+                visibility: visible !important; /* Ensure all children are visible */
+                border: 2px solid black;
+                box-shadow: none;
+                width: 100%; /* Use full width for printing */
+                position: absolute;
+                left: 0;
+                top: 0;
+                padding: 50px; /* More padding for print */
+                color: #000000;
+                background-color: #FFFFFF;
+                border-radius: 0; /* No rounded corners for print */
+            }
+            #certificate h1 {
+                color: #000000;
+                font-size: 24pt;
+            }
+            #certificate p {
+                 color: #000000;
+                 font-size: 14pt;
+            }
+            #certPlayerName, #certScore, #certDate {
+                color: #000000 !important; /* Ensure black text */
+            }
+            #choicesArea button, #scoreArea, #header h1 {
+                display: none; /* Hide non-certificate elements */
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            body {
+                font-size: 16px; /* Adjusted base for smaller screens */
+            }
+            #header h1 {
+                font-size: 1.6em;
+            }
+            #choicesArea button {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            #gameContainer {
+                padding: 15px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <div id="header">
+            <h1>IRR17: The Local Rules Adventure</h1>
+        </div>
+
+        <div id="scenarioText">Loading game...</div>
+        <input type="text" id="playerNameInput" placeholder="Enter your name, Physicist" style="display:none;">
+        <div id="choicesArea"></div>
+        <div id="consequenceText" style="display:none;"></div>
+        <div id="scoreArea">Score: 0</div>
+    </div>
+
+    <div id="certificate">
+        <h1>Certificate of Completion</h1>
+        <p>This certifies that</p>
+        <p id="certPlayerName">[Player Name]</p>
+        <p>has completed the</p>
+        <p><strong>IRR17: The Local Rules Adventure</strong></p>
+        <p>on <span id="certDate">[Date]</span></p>
+        <p>with a final score of: <span id="certScore">[Score]</span></p>
+        <hr style="border-color: #00FF00;">
+        <p style="font-size: 0.8em;"><em>This training simulation reinforces understanding of IRR17 Local Rules.</em></p>
+    </div>
+
+    <script>
+        // DOM Elements
+        const scenarioTextElement = document.getElementById('scenarioText');
+        const choicesAreaElement = document.getElementById('choicesArea');
+        const scoreAreaElement = document.getElementById('scoreArea');
+        const playerNameInputElement = document.getElementById('playerNameInput');
+        const consequenceTextElement = document.getElementById('consequenceText');
+        const gameContainerElement = document.getElementById('gameContainer');
+        const certificateElement = document.getElementById('certificate');
+
+        // Game State
+        let currentPlayerName = "Physicist";
+        let currentScore = 0;
+        let currentScenarioId = "start";
+
+        // Game Data
+        const gameData = [
+            {
+                id: "start",
+                text: "Welcome, aspiring Nuclear Medicine Physicist.\n\nYour role is crucial in upholding radiation safety standards as per IRR17 and local rules. Today, you'll face several situations. Your choices will determine your success and impact patient and staff safety.\n\nPlease enter your name to begin your day at St. Hypothetical's Hospital.",
+                isGetNameScreen: true,
+                choices: [
+                    { text: "Proceed to St. Hypothetical's", nextScenarioId: "scenario1" }
+                ]
+            },
+            {
+                id: "scenario1",
+                text: "It's 8:00 AM. Dr. Rush from Cardiology is on the phone, sounding agitated.\n\n'I need an URGENT FDG PET-CT for Mr. Athero in Bed 12. He's severely claustrophobic and might need sedation. Can you fit him in this morning? The schedule is absolutely packed, and your usual pre-check radiographer, Sarah, called in sick today.'",
+                choices: [
+                    {
+                        text: "A) 'Okay, Dr. Rush. Patient care is paramount. We'll squeeze him in. We can sort the justification and pre-checks as we go.'",
+                        consequenceText: "Consequence: While patient care is vital, bypassing formal justification and pre-checks, especially with potential sedation, can lead to serious safety oversights and breaches of IRR17 (Regulation 11 - Justification, Regulation 8 - Optimisation). This could compromise patient safety, legal compliance, and misalign with ARSAC requirements. (-10 points)",
+                        scoreEffect: -10,
+                        nextScenarioId: "scenario2"
+                    },
+                    {
+                        text: "B) 'I understand the urgency, Dr.Rush. However, we must adhere to our local rules. Please send over the formal clinical justification. We also need to properly assess for sedation and complete all safety pre-checks with the available staff. This might mean a slight delay, but it's crucial for safety and compliance.'",
+                        consequenceText: "Consequence: Excellent. Upholding established protocols (Local Rule 3.1: Justification & Authorisation, LR 4.2: Patient Checks), even under pressure, is key to IRR17 compliance and patient safety. Clear justification by an ARSAC certificate holder and thorough pre-assessment are vital. (+10 points)",
+                        scoreEffect: 10,
+                        nextScenarioId: "scenario2"
+                    },
+                    {
+                        text: "C) 'Let me check with radiopharmacy about FDG availability for an extra patient. In the meantime, can the ward nurse initiate the pre-scan checklist for Mr. Athero? We'll still need the formal justification from you too, Dr. Rush, before we can proceed with authorisation.'",
+                        consequenceText: "Consequence: A pragmatic approach. Checking resources and delegating appropriate tasks (LR 4.2: Patient Checks) is good. However, ensure you, as the MPE/RPS, ultimately confirm all IRR17 requirements (like formal justification by an IRRMA practitioner) are met before the exposure is authorised. (+5 points)",
+                        scoreEffect: 5,
+                        nextScenarioId: "scenario2"
+                    }
+                ]
+            },
+            {
+                id: "scenario2",
+                text: "You are about to oversee the administration of a therapeutic dose of I-131. The pre-administration checks by the technologist show the measured activity in the dose calibrator is 15% HIGHER than prescribed on the ARSAC form and treatment plan. The patient is waiting, and the consultant is eager to proceed.",
+                choices: [
+                    {
+                        text: "A) 'It's a bit high, but often there are slight variations with therapy doses. Let's proceed. The patient needs this treatment and delays are stressful.'",
+                        consequenceText: "Consequence: A 15% deviation for a therapeutic dose is significant and unacceptable without thorough investigation. Proceeding could lead to a misadministration (overexposure) and is a serious breach of IRR17 (Reg 8 - Optimisation, Reg 13 - Dose Constraints) and ARSAC guidelines. (Local Rule 7.3: Dose Verification) (-15 points)",
+                        scoreEffect: -15,
+                        nextScenarioId: "scenario3"
+                    },
+                    {
+                        text: "B) 'Hold everything. A 15% discrepancy is a major concern. We CANNOT proceed until this is investigated and resolved. Inform the patient and consultant of a delay. We must re-verify the prescription, calculations, dose calibrator QC records, and potentially re-measure if a new source is needed.'",
+                        consequenceText: "Consequence: Absolutely correct. Patient safety and regulatory compliance (IRR17, ARSAC) are paramount. Halting the procedure to investigate such a discrepancy (Local Rule 7.3: Dose Verification, LR 9.1: Incident Investigation) is the only responsible action. (+10 points)",
+                        scoreEffect: 10,
+                        nextScenarioId: "scenario3"
+                    },
+                    {
+                        text: "C) 'Ask radiopharmacy to double-check their dispensed activity records. Perhaps we can just document this discrepancy, get the consultant to sign off on the higher activity, and proceed? Note it for my MPE review later.'",
+                        consequenceText: "Consequence: While checking with radiopharmacy is a step, simply documenting and proceeding with a known 15% overage for a therapy dose, even with a sign-off, is not ALARP and skirts proper procedure for investigating potential misadministrations before they happen. (Local Rule 7.3, Reg 8) (-5 points)",
+                        scoreEffect: -5,
+                        nextScenarioId: "scenario3"
+                    }
+                ]
+            },
+            {
+                id: "scenario3",
+                text: "A junior technologist, looking flustered, informs you they accidentally dropped and broke a small vial containing approximately 30 MBq of Tc-99m eluate on the floor of the busy hot lab. A small puddle is visible.",
+                choices: [
+                    {
+                        text: "A) 'Quick, grab some absorbent paper towels and wipe it up! We need to keep the workflow going. Just be careful and dispose of the towels in the clinical waste.'",
+                        consequenceText: "Consequence: This is an inadequate response. Untrained or rushed cleaning can spread contamination and lead to unnecessary exposure. Clinical waste is not appropriate for radioactive material. (IRR17 Reg 19 - Control of Radioactive Substances, Local Rule 10.1: Spill Procedures) (-10 points)",
+                        scoreEffect: -10,
+                        nextScenarioId: "scenario4"
+                    },
+                    {
+                        text: "B) 'Okay, stay calm. First, restrict access to the immediate area of the spill. Get the designated spill kit. We need to follow our local rules for minor radioactive spill decontamination precisely. Inform me (as RPS/MPE) at each step. We'll monitor and document everything.'",
+                        consequenceText: "Consequence: Perfect. This demonstrates adherence to emergency procedures and local rules (LR 10.1: Spill Procedures). Containing the spill, using the correct equipment, and proper supervision are crucial for safety and compliance. (+10 points)",
+                        scoreEffect: 10,
+                        nextScenarioId: "scenario4"
+                    },
+                    {
+                        text: "C) 'Don't worry too much, 30 MBq of Technetium isn't a huge amount. Just put a warning sign over it for now. We can clean it properly at the end of the day when the lab is quieter and it's decayed a bit.'",
+                        consequenceText: "Consequence: Incorrect. Delaying cleanup of a known spill, however small, risks spread of contamination, inhalation, and inadvertent exposure to staff. Immediate action as per local rules is required. (IRR17 Reg 19, Local Rule 10.1) (-5 points)",
+                        scoreEffect: -5,
+                        nextScenarioId: "scenario4"
+                    }
+                ]
+            },
+             {
+                id: "scenario4",
+                text: "During a routine review of training records, you notice that Dr. Anya Sharma, a newly appointed consultant radiologist who frequently authorises complex molecular radiotherapy administrations, has not yet completed the specific IRR17 training module on 'Safe Handling and Administration of Therapeutic Radiopharmaceuticals', a mandatory item in your department's local rules for this role.",
+                choices: [
+                    {
+                        text: "A) 'Dr. Sharma is very experienced from her previous hospital; I'm sure she knows what she's doing. I'll just send her a friendly email reminder to do the training when she has a spare moment. She can continue authorising for now.'",
+                        consequenceText: "Consequence: This is a compliance risk. Local rules and IRR17 (Regulation 15 - Information, instruction and training) mandate specific training for specific duties. Assuming competence without documented training is not acceptable, especially for high-risk procedures. (-10 points)",
+                        scoreEffect: -10,
+                        nextScenarioId: "end"
+                    },
+                    {
+                        text: "B) 'This is a critical training gap. I must speak with Dr. Sharma and her clinical director immediately. Dr. Sharma cannot authorise these specific therapeutic treatments until this mandatory training is completed and documented. We'll need to arrange for another authorised colleague to cover these authorisations in the interim.'",
+                        consequenceText: "Consequence: This is the correct and responsible action. Ensuring all staff have the required training (LR 2.3: Staff Training Records, IRR17 Reg 15) before undertaking duties they are not yet formally signed off for is essential for safety and legal compliance, even if it causes temporary operational adjustments. (+10 points)",
+                        scoreEffect: 10,
+                        nextScenarioId: "end"
+                    },
+                    {
+                        text: "C) 'I'll add this to the agenda for the next departmental safety meeting for a general discussion on training compliance. Hopefully, Dr. Sharma will realise and complete it then. It's a bit awkward to single her out.'",
+                        consequenceText: "Consequence: While departmental discussion is good, this is too passive for a direct and immediate compliance issue involving a named individual and high-risk procedures. Direct intervention is required. (LR 2.3, IRR17 Reg 15) (-5 points)",
+                        scoreEffect: -5,
+                        nextScenarioId: "end"
+                    }
+                ]
+            },
+            {
+                id: "end",
+                text: "", // Text will be set dynamically
+                isEndScreen: true,
+                choices: [
+                    { text: "Print Certificate of Completion", action: "print" },
+                    { text: "Restart Adventure", nextScenarioId: "start" }
+                ]
+            }
+        ];
+
+        // Functions
+        function getScenario(id) {
+            return gameData.find(scenario => scenario.id === id);
+        }
+
+        function updateScore(points) {
+            currentScore += points;
+            scoreAreaElement.textContent = `Score: ${currentScore}`;
+        }
+
+        function displayScenario(id) {
+            const scenario = getScenario(id);
+            if (!scenario) {
+                scenarioTextElement.textContent = "Error: Scenario not found. Game over.";
+                choicesAreaElement.innerHTML = "";
+                return;
+            }
+
+            currentScenarioId = id;
+            consequenceTextElement.style.display = 'none'; // Hide consequence from previous choice
+            consequenceTextElement.textContent = '';
+
+            if (scenario.isGetNameScreen) {
+                scenarioTextElement.innerHTML = scenario.text.replace(/\n/g, '<br>'); // Use innerHTML for line breaks
+                playerNameInputElement.style.display = 'block';
+                playerNameInputElement.value = currentPlayerName === "Physicist" ? "" : currentPlayerName; // Clear default if not changed
+                choicesAreaElement.innerHTML = ""; // Clear previous choices
+                const button = document.createElement('button');
+                button.textContent = scenario.choices[0].text;
+                button.onclick = () => {
+                    const nameEntered = playerNameInputElement.value.trim();
+                    if (nameEntered) {
+                        currentPlayerName = nameEntered;
+                    }
+                    playerNameInputElement.style.display = 'none';
+                    displayScenario(scenario.choices[0].nextScenarioId);
+                };
+                choicesAreaElement.appendChild(button);
+            } else if (scenario.isEndScreen) {
+                let endText = "";
+                if (currentScore >= 25) { // Adjusted thresholds for 4 scenarios (max 40)
+                    endText = `Congratulations, ${currentPlayerName}!\n\nYou've navigated a challenging day with excellent adherence to local rules and radiation safety principles (IRR17). Your decisions reflect a strong commitment to safety and best practice.`;
+                } else if (currentScore >= 10) {
+                    endText = `Well done, ${currentPlayerName}.\n\nYou made it through the day. There were some tricky situations, and while you generally made good calls, there are a few areas where adherence to local rules could be further strengthened. Reflect on the choices and their consequences.`;
+                } else {
+                    endText = `Attention, ${currentPlayerName}.\n\nToday was tough, and several decisions unfortunately compromised radiation safety and IRR17 compliance. It's crucial to thoroughly review local rules and prioritise them, even under significant operational pressure. This is a learning opportunity.`;
+                }
+                scenario.text = endText; // Update the scenario text
+                scenarioTextElement.innerHTML = scenario.text.replace(/\n/g, '<br>');
+                choicesAreaElement.innerHTML = "";
+                scenario.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    if (choice.action === "print") {
+                        button.onclick = printCertificate;
+                    } else if (choice.nextScenarioId === "start") {
+                         button.onclick = () => {
+                            currentScore = 0; // Reset score
+                            currentPlayerName = "Physicist"; // Reset name or keep as is? Let's reset.
+                            updateScore(0); // Update display
+                            certificateElement.style.display = 'none'; // Hide certificate if it was shown
+                            gameContainerElement.style.display = 'block'; // Show game
+                            displayScenario("start");
+                        };
+                    }
+                    choicesAreaElement.appendChild(button);
+                });
+            } else {
+                scenarioTextElement.innerHTML = scenario.text.replace(/\n/g, '<br>');
+                choicesAreaElement.innerHTML = ""; // Clear previous choices
+                scenario.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    button.onclick = () => handleChoice(choice);
+                    choicesAreaElement.appendChild(button);
+                });
+            }
+        }
+
+        function handleChoice(choice) {
+            updateScore(choice.scoreEffect);
+            consequenceTextElement.innerHTML = choice.consequenceText.replace(/\n/g, '<br>');
+            consequenceTextElement.style.display = 'block';
+
+            choicesAreaElement.innerHTML = ""; // Clear choices
+            const continueButton = document.createElement('button');
+            continueButton.textContent = "Continue...";
+            continueButton.onclick = () => {
+                if (choice.nextScenarioId === "end") {
+                     displayScenario("end"); // Go to generic end, text will be set based on score
+                } else {
+                    displayScenario(choice.nextScenarioId);
+                }
+            };
+            choicesAreaElement.appendChild(continueButton);
+        }
+
+        function printCertificate() {
+            document.getElementById('certPlayerName').textContent = currentPlayerName;
+            document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-GB'); // DD/MM/YYYY
+            document.getElementById('certScore').textContent = currentScore;
+
+            // Temporarily hide game and show certificate for printing
+            gameContainerElement.style.display = 'none';
+            certificateElement.style.display = 'block';
+            
+            window.print(); // Evoke print dialog
+
+            // Restore view after print dialog (whether printed or cancelled)
+            // Small delay to ensure print dialog is processed
+            setTimeout(() => {
+                gameContainerElement.style.display = 'block';
+                certificateElement.style.display = 'none';
+            }, 100);
+        }
+
+        // Initial game load
+        window.onload = () => {
+            updateScore(0); // Initialize score display
+            displayScenario(currentScenarioId);
+        };
+    </script>
+
+</body>
+</html>
